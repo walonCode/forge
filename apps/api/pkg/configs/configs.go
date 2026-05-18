@@ -1,10 +1,9 @@
 package configs
 
 import (
-	"os"
-	"strconv"
+	"api/pkg/utils"
 
-	_"github.com/joho/godotenv/autoload"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 
@@ -17,9 +16,9 @@ type Config struct {
 }
 
 func Load()(*Config){
-	database_url := os.Getenv("DATABASE_URL")
-	port,_ := strconv.Atoi(os.Getenv("PORT"))
-	appVersion := os.Getenv("APP_VERSION")
+	database_url := utils.GetEnvString("DATABASE_URL","")
+	port := utils.GetEnvInt("PORT", 1000)
+	appVersion := utils.GetEnvString("APP_VERSION", "1.0.0")
 	
 	return &Config{
 		PORT: port,
