@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -17,12 +18,12 @@ import (
 
 type Server struct {
 	router *chi.Mux
-	db any
+	db *sql.DB
 	config any
 	logger *slog.Logger
 }
 
-func New(db, cfg any)*Server{
+func New(db *sql.DB, cfg any)*Server{
 	s := &Server{
 		router: chi.NewRouter(),
 		db:db,

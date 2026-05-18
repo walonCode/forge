@@ -2,6 +2,7 @@ package main
 
 import (
 	"api/internals/server"
+	"database/sql"
 	"log/slog"
 	"os"
 )
@@ -10,7 +11,8 @@ func main(){
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	//real db and cfg comming soon
-	var db,cfg any
+	var cfg any
+	var db *sql.DB
 	srv := server.New(db, cfg)
 
 	if err := srv.Start(); err != nil {
