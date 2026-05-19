@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16.11-alpine
+    container_name: api_postgress
+    restart: always
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: forge_api
+    ports:
+      - "5432:5432"
+    volumes:
+      - forge_api:/var/lib/postgresql/data
+
+  pgAdmin:
+    image: dpage/pgadmin4:9.15.0
+    container_name: pgadmin_container
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      
+volumes:
+  forge_api:
+  pgadmin_data:
