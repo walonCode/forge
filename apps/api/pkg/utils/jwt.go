@@ -20,7 +20,7 @@ func CreateToken(id string) (string, error) {
 }
 
 type JwtClaims struct {
-	UserdId string `json:"userId"`
+	UserId string `json:"userId"`
 	jwt.RegisteredClaims
 }
 
