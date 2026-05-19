@@ -10,7 +10,7 @@ type Module struct {
 	handler *Handler
 }
 
-func New(db *sql.DB)*Module{
+func New(db *sql.DB) *Module {
 	repo := newRepository(db)
 	service := newService(repo)
 	handler := newHandler(service)
@@ -20,7 +20,7 @@ func New(db *sql.DB)*Module{
 	}
 }
 
-func(m *Module)Register(r chi.Router){
+func (m *Module) Register(r chi.Router) {
 	r.Post("/auth/login", m.handler.LoginHandler)
 	r.Post("/auth/signup", m.handler.SignupHandler)
 	r.Post("/auth/logout", nil)

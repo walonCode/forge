@@ -12,7 +12,7 @@ type contextkey string
 
 const CorrelationIDKey contextkey = "correlation_id"
 
-func CreateCorrelationIdMiddleware(next http.Handler)http.Handler{
+func CreateCorrelationIdMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := gonanoid.New(30)
 		if err != nil {
@@ -28,11 +28,11 @@ func CreateCorrelationIdMiddleware(next http.Handler)http.Handler{
 
 		//setting the context and passing it down
 		ctx := context.WithValue(r.Context(), CorrelationIDKey, id)
-		next.ServeHTTP(w,r.WithContext(ctx))
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func GetCorrelationID(ctx context.Context)string{
+func GetCorrelationID(ctx context.Context) string {
 	if id, ok := ctx.Value(CorrelationIDKey).(string); ok {
 		return id
 	}

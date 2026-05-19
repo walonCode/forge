@@ -1,30 +1,28 @@
 package utils
 
 import (
-	"time"
 	"fmt"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	_"github.com/joho/godotenv/autoload"
+	_ "github.com/joho/godotenv/autoload"
 )
 
-var secretKey = GetEnvString("JWT_SECRET","thisisunifjfnjodnfsndfnps")
+var secretKey = GetEnvString("JWT_SECRET", "thisisunifjfnjodnfsndfnps")
 
-func CreateToken(id string)(string, error){
+func CreateToken(id string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId":id,
-		"exp":time.Now().Add(time.Hour * 24 * 7),
+		"userId": id,
+		"exp":    time.Now().Add(time.Hour * 24 * 7),
 	})
-	
+
 	return token.SignedString([]byte(secretKey))
 }
-
 
 type JwtClaims struct {
 	UserdId string `json:"userId"`
 	jwt.RegisteredClaims
 }
-
 
 func VerifyToken(tokenString string) (*JwtClaims, error) {
 	token, err := jwt.ParseWithClaims(
@@ -38,7 +36,7 @@ func VerifyToken(tokenString string) (*JwtClaims, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	claims, ok := token.Claims.(*JwtClaims)
 	if !ok || !token.Valid {
 		return nil, fmt.Errorf("invalid token")

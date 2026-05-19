@@ -10,7 +10,7 @@ type Module struct {
 	handler *Handler
 }
 
-func New(db *sql.DB)*Module{
+func New(db *sql.DB) *Module {
 	service := newService(db)
 	handler := newHandler(service)
 
@@ -19,7 +19,7 @@ func New(db *sql.DB)*Module{
 	}
 }
 
-func(m *Module)Register(r chi.Router){
+func (m *Module) Register(r chi.Router) {
 	r.Get("/health", m.handler.Health)
-	r.Get("/health/ready",m.handler.Ready)
+	r.Get("/health/ready", m.handler.Ready)
 }

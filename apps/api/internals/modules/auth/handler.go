@@ -12,14 +12,14 @@ type Handler struct {
 	service *Service
 }
 
-func newHandler(s *Service)*Handler{
+func newHandler(s *Service) *Handler {
 	return &Handler{
 		service: s,
 	}
 }
 
-//login
-func (h *Handler)LoginHandler(w http.ResponseWriter, r *http.Request){
+// login
+func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utils.ErrorResponse(
@@ -32,13 +32,13 @@ func (h *Handler)LoginHandler(w http.ResponseWriter, r *http.Request){
 
 	//see if the user exist
 	user, err := h.service.FindUserByUsername(r.Context(), request.Username)
-	if err != nil  {
+	if err != nil {
 		utils.ErrorResponse(
 			w,
 			http.StatusUnauthorized,
 			"invalid username or password",
 		)
-		return 
+		return
 	}
 
 	//verify password
@@ -76,11 +76,11 @@ func (h *Handler)LoginHandler(w http.ResponseWriter, r *http.Request){
 	userLogin := AuthResponse{
 		Message: "user login succcessfully",
 		Data: AuthResponseData{
-			AccessToken:accessToken,
+			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		},
 	}
-	
+
 	utils.SuccessResponse(
 		w,
 		http.StatusOK,
@@ -88,8 +88,8 @@ func (h *Handler)LoginHandler(w http.ResponseWriter, r *http.Request){
 	)
 }
 
-//signup
-func (h *Handler)SignupHandler(w http.ResponseWriter, r *http.Request){
+// signup
+func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	var body SignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		utils.ErrorResponse(
@@ -97,10 +97,10 @@ func (h *Handler)SignupHandler(w http.ResponseWriter, r *http.Request){
 			http.StatusBadRequest,
 			"invalid request body",
 		)
-		return 
+		return
 	}
 
-	//check if user already exist 
+	//check if user already exist
 	user, err := h.service.FindUserByUsername(r.Context(), body.Username)
 	if err != nil {
 		utils.ErrorResponse(
@@ -128,9 +128,9 @@ func (h *Handler)SignupHandler(w http.ResponseWriter, r *http.Request){
 			http.StatusInternalServerError,
 			"something went wrong",
 		)
-		return 
+		return
 	}
-	
+
 	accessToken, err := utils.CreateToken(userId)
 	if err != nil {
 		utils.ErrorResponse(
@@ -153,15 +153,14 @@ func (h *Handler)SignupHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	
 	userLogin := AuthResponse{
 		Message: "user login succcessfully",
 		Data: AuthResponseData{
-			AccessToken:accessToken,
+			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		},
 	}
-	
+
 	utils.SuccessResponse(
 		w,
 		http.StatusCreated,

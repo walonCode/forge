@@ -11,7 +11,7 @@ type Database struct {
 	Client *sql.DB
 }
 
-func (d *Database)Close()error{
+func (d *Database) Close() error {
 	if d.Client != nil {
 		return d.Client.Close()
 	}
@@ -19,7 +19,7 @@ func (d *Database)Close()error{
 	return nil
 }
 
-func Connect(database_url string)(*Database, error){
+func Connect(database_url string) (*Database, error) {
 	db, err := sql.Open("pgx", database_url)
 	if err != nil {
 		return nil, err

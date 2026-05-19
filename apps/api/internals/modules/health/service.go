@@ -13,17 +13,17 @@ type Service struct {
 
 var start = time.Now()
 
-func newService(db *sql.DB)*Service {
+func newService(db *sql.DB) *Service {
 	return &Service{
 		db: db,
 	}
 }
 
-func(s *Service)Health()HealthResponse{
-	return HealthResponse {
-		Status: "ok",
+func (s *Service) Health() HealthResponse {
+	return HealthResponse{
+		Status:  "ok",
 		Version: "1.0.0",
-		Uptime: fmt.Sprintf("%s", time.Since(start).Round(time.Second)),
+		Uptime:  fmt.Sprintf("%s", time.Since(start).Round(time.Second)),
 	}
 }
 

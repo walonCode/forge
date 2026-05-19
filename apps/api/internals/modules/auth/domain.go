@@ -1,32 +1,32 @@
 package auth
 
-//login
+// login
 type LoginRequest struct {
 	Username string `json:"username" validate:"required,min=2"`
 	Password string `json:"password" validate:"required,min=8"`
 }
 
-//signup
+// signup
 type SignupRequest struct {
-	Name string `json:"name" validate:"required,min=2"`
+	Name     string `json:"name" validate:"required,min=2"`
 	Username string `json:"username" validate:"required,min=2"`
 	Password string `json:"password" validate:"required,min=8"`
 }
 
-//auth response
+// auth response
 type AuthResponse struct {
-	Message string `json:"message"`
-	Data AuthResponseData `json:"data" validate:"omitempty"`
+	Message string           `json:"message"`
+	Data    AuthResponseData `json:"data" validate:"omitempty"`
 }
 
 type AuthResponseData struct {
-	AccessToken string `json:"access_token"`
+	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
 
-//type for the Database
+// type for the Database
 type DbUser struct {
-	ID string
+	ID       string
 	Username string
 	Password string
 }
@@ -34,6 +34,6 @@ type DbUser struct {
 type CreateDbUser struct {
 	Username string
 	Password string
-	Name string
-	ID string
+	Name     string
+	ID       string
 }

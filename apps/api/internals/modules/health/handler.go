@@ -9,21 +9,21 @@ type Handler struct {
 	service *Service
 }
 
-func newHandler(s *Service)*Handler{
+func newHandler(s *Service) *Handler {
 	return &Handler{
 		service: s,
 	}
 }
 
-func(h *Handler)Health(w http.ResponseWriter, r *http.Request){
+func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	resp := h.service.Health()
 
-	w.Header().Set("Content-Type","application/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
 }
 
-func (h *Handler)Ready(w http.ResponseWriter, r *http.Request){
+func (h *Handler) Ready(w http.ResponseWriter, r *http.Request) {
 	resp, ok := h.service.Ready(r.Context())
 
 	status := http.StatusOK

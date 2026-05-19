@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func main(){
+func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	//real db and cfg comming soon
@@ -19,7 +19,7 @@ func main(){
 		os.Exit(1)
 	}
 	defer db.Close()
-	
+
 	srv := server.New(db.Client, cfg)
 
 	if err := srv.Start(); err != nil {
