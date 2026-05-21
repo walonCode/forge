@@ -1,4 +1,5 @@
 DB_URL=postgresql://username:password@localhost:5432/forge_api?sslmode=disable
+MIGRATIONS_DIR=db/migrations
 
 ## help: Show available commands
 .PHONY: help
@@ -46,14 +47,33 @@ audit:
 	@echo "Running tests..."
 	@go test ./...
 
-## database_up: Apply migrations
+## database_up: Apply all pending migrations
 .PHONY: database_up
 database_up:
 	@echo "Applying migrations..."
-	@migrate -path db/migrations -database "$(DB_URL)" up
+	@migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" up
 
 ## database_down: Rollback one migration
 .PHONY: database_down
 database_down:
 	@echo "Rolling back migration..."
-	@migrate -path db/migrations -database "$(DB_URL)" down 1
+	@migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" down 1
+
+## migrate_create name=<name>: Create a new migration file pair
+.PHONY: migrate_create
+migrate_create:
+	@test -n "$(name)" || (echo "Error: name is required. Usage: make migrate_create name=<migration_name>"; exit 1)
+	@echo "Creating migration: $(name)..."
+	@migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
+
+## swagger: Generate Swagger docs from annotations
+.PHONY: swagger
+swagger:
+	@echo "Generating Swagger docs..."
+	@swag init -g cmd/api/main.go --output docs
+
+## swagger_fmt: Format Swagger annotations
+.PHONY: swagger_fmt
+swagger_fmt:
+	@echo "Formatting Swagger annotations..."
+	@swag fmt

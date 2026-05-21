@@ -15,7 +15,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	_ "api/docs"
 )
 
 type Server struct {
@@ -59,6 +61,11 @@ func (s *Server) mountMiddleware() {
 func (s *Server) mountRoutes() {
 	//metrics
 	s.router.Handle("/metrics", promhttp.Handler())
+
+	//doc
+	s.router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+	))
 
 	//mount the modules
 	s.mountModules()
