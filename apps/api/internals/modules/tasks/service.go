@@ -16,29 +16,29 @@ func newService(repo Respository) *Service {
 	}
 }
 
-func (s *Service)CreateTask(ctx context.Context, params CreateTaskRequest, userId string)(string, error){
+func (s *Service) CreateTask(ctx context.Context, params CreateTaskRequest, userId string) (string, error) {
 	id, err := gonanoid.New(30)
 	if err != nil {
 		return "", err
 	}
 
 	newTask := CreateTaskParam{
-		ID: id,
+		ID:          id,
 		IsCompleted: false,
-		Title: params.Title,
+		Title:       params.Title,
 		Description: params.Description,
-		UserId: userId,
+		UserId:      userId,
 	}
 
-	data, err := s.repo.CreateTask(ctx, newTask) 
+	data, err := s.repo.CreateTask(ctx, newTask)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
-	return data,nil
+	return data, nil
 }
 
-func (s *Service)GetTasks(ctx context.Context, userId string)(*[]Task, error){
+func (s *Service) GetTasks(ctx context.Context, userId string) (*[]Task, error) {
 	tasks, err := s.repo.GetTasks(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (s *Service)GetTasks(ctx context.Context, userId string)(*[]Task, error){
 	return tasks, nil
 }
 
-func (s *Service)DeleteTask(ctx context.Context, userId, taskId string)error{
+func (s *Service) DeleteTask(ctx context.Context, userId, taskId string) error {
 	if err := s.repo.DeleteTask(ctx, userId, taskId); err != nil {
 		return err
 	}
@@ -55,16 +55,16 @@ func (s *Service)DeleteTask(ctx context.Context, userId, taskId string)error{
 	return nil
 }
 
-func (s *Service)GetTask(ctx context.Context, userId, taskId string)(*Task, error){
+func (s *Service) GetTask(ctx context.Context, userId, taskId string) (*Task, error) {
 	task, err := s.repo.GetTask(ctx, userId, taskId)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	return task,nil
+	return task, nil
 }
 
-func(s *Service)UpdateTask(ctx context.Context, userId, taskId string, isCompleted bool)(*Task, error){
+func (s *Service) UpdateTask(ctx context.Context, userId, taskId string, isCompleted bool) (*Task, error) {
 	task, err := s.repo.UpdateTask(ctx, userId, taskId, isCompleted)
 	if err != nil {
 		return nil, err

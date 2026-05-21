@@ -64,7 +64,6 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-
 // GetTask godoc
 //
 //	@Summary		Get all tasks
@@ -94,7 +93,6 @@ func (h *Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 		Data:    &task,
 	})
 }
-
 
 // DeleteTask godoc
 //
@@ -171,7 +169,6 @@ func (h *Handler) GetTask(w http.ResponseWriter, r *http.Request) {
 		Data:    task,
 	})
 }
-
 
 // UpdateTask godoc
 //

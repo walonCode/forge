@@ -12,12 +12,12 @@ import (
 	"syscall"
 	"time"
 
+	_ "api/docs"
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	_ "api/docs"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type Server struct {

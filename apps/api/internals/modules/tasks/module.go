@@ -21,7 +21,7 @@ func New(db *sql.DB, logger *slog.Logger) *Module {
 	}
 }
 
-func (m *Module)Register(r chi.Router){
+func (m *Module) Register(r chi.Router) {
 	r.Post("/task", m.handler.CreateTask)
 	r.Get("/tasks", m.handler.GetTasks)
 	r.Delete("/task/{id}", m.handler.DeleteTask)

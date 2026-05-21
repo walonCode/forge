@@ -23,6 +23,6 @@ func Load() *Config {
 		PORT:        port,
 		DATABSE_URL: database_url,
 		APP_VERSION: appVersion,
-		JWT_SECRET: jwtSecret,
+		JWT_SECRET:  jwtSecret,
 	}
 }
