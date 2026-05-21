@@ -1,6 +1,6 @@
-# walon-platform
+# forge
 
-A full-stack platform built layer by layer — Go API, Next.js dashboard, Bash/Python scripts, AWS infrastructure, and a Rust load-testing CLI.
+A monorepo that combines tools — Go API, Next.js dashboard, Bash/Python scripts, AWS infrastructure, and a Rust CLI — to make a project work seamlessly end to end.
 
 > **Status**: Layer 1 (Go API) in progress · Layer 3 (UI) complete · Layers 2, 4, 5, 6 coming.
 
@@ -8,7 +8,7 @@ A full-stack platform built layer by layer — Go API, Next.js dashboard, Bash/P
 
 ## What this is
 
-A production-grade monorepo built to learn and demonstrate every layer of a real backend platform:
+Forge is a monorepo that wires together every layer of a real backend system. Each tool is chosen deliberately — the goal is to understand how they fit together, not just that they work individually:
 
 | Layer | What | Status |
 |---|---|---|
@@ -53,7 +53,7 @@ A production-grade monorepo built to learn and demonstrate every layer of a real
 ## Repository structure
 
 ```
-walon-platform/
+forge/
 ├── apps/
 │   ├── api/          # Go backend
 │   │   ├── cmd/api/  # Entry point
@@ -83,8 +83,8 @@ walon-platform/
 
 ```bash
 # 1. Clone
-git clone https://github.com/walonCode/walon-platform.git
-cd walon-platform
+git clone https://github.com/walonCode/forge.git
+cd forge
 
 # 2. Start the database
 docker compose up -d
