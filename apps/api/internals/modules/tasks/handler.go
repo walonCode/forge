@@ -1,9 +1,11 @@
 package tasks
 
 import (
+	"api/internals/middleware"
 	"api/internals/modules/auth"
 	"api/pkg/utils"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -12,11 +14,13 @@ import (
 
 type Handler struct {
 	service *Service
+	logger  *slog.Logger
 }
 
-func newHandler(s *Service)*Handler {
+func newHandler(s *Service, logger *slog.Logger) *Handler {
 	return &Handler{
-		service:s,
+		service: s,
+		logger:  logger,
 	}
 }
 
@@ -33,41 +37,31 @@ func newHandler(s *Service)*Handler {
 //	@Failure		400		{object}	utils.Error
 //	@Failure		500		{object}	utils.Error
 //	@Router			/task [post]
-func (h *Handler)CreateTask(w http.ResponseWriter, r *http.Request){
+func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
+	correlationID := middleware.GetCorrelationID(r.Context())
+
 	var request CreateTaskRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusBadRequest,
-			"invalid request body",
-		)
+		h.logger.Error("CreateTask: failed to decode request body", slog.String("correlation_id", correlationID), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	//getting the userId
 	userId := r.Context().Value(auth.UserIdKey)
 
-	//create Create 
-	value, err := h.service.CreateTask(r.Context(), request,userId.(string))
+	value, err := h.service.CreateTask(r.Context(), request, userId.(string))
 	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"something went wrong",
-		)
+		h.logger.Error("CreateTask: service error", slog.String("correlation_id", correlationID), slog.String("user_id", userId.(string)), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
-	data := TaskResponse{
-		Message: "task created successfully",
-		Data: value,
-	}
+	h.logger.Info("CreateTask: task created", slog.String("correlation_id", correlationID), slog.String("user_id", userId.(string)))
 
-	utils.SuccessResponse(
-		w,
-		http.StatusCreated,
-		data,
-	)
+	utils.SuccessResponse(w, http.StatusCreated, TaskResponse{
+		Message: "task created successfully",
+		Data:    value,
+	})
 }
 
 
@@ -82,37 +76,29 @@ func (h *Handler)CreateTask(w http.ResponseWriter, r *http.Request){
 //	@Failure		401	{object}	utils.Error
 //	@Failure		500	{object}	utils.Error
 //	@Router			/tasks [get]
-func (h *Handler)GetTasks(w http.ResponseWriter, r *http.Request){
+func (h *Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
+	correlationID := middleware.GetCorrelationID(r.Context())
 	userId := r.Context().Value(auth.UserIdKey)
+
 	if strings.TrimSpace(userId.(string)) == "" {
-		utils.ErrorResponse(
-			w,
-			http.StatusUnauthorized,
-			"user not authenticated",
-		)
-		return 
+		h.logger.Warn("GetTasks: unauthenticated request", slog.String("correlation_id", correlationID))
+		utils.ErrorResponse(w, http.StatusUnauthorized, "user not authenticated")
+		return
 	}
 
 	task, err := h.service.GetTasks(r.Context(), userId.(string))
 	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"something went wrong",
-		)
+		h.logger.Error("GetTasks: service error", slog.String("correlation_id", correlationID), slog.String("user_id", userId.(string)), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
-	data := TaskResponse{
-		Message: "all user tasks",
-		Data: &task,
-	}
+	h.logger.Info("GetTasks: fetched tasks", slog.String("correlation_id", correlationID), slog.String("user_id", userId.(string)))
 
-	utils.SuccessResponse(
-		w,
-		http.StatusOK,
-		data,
-	)
+	utils.SuccessResponse(w, http.StatusOK, TaskResponse{
+		Message: "all user tasks",
+		Data:    &task,
+	})
 }
 
 
@@ -128,43 +114,34 @@ func (h *Handler)GetTasks(w http.ResponseWriter, r *http.Request){
 //	@Failure		401	{object}	utils.Error
 //	@Failure		500	{object}	utils.Error
 //	@Router			/task/{id} [delete]
-func (h *Handler)DeleteTask(w http.ResponseWriter, r *http.Request){
+func (h *Handler) DeleteTask(w http.ResponseWriter, r *http.Request) {
+	correlationID := middleware.GetCorrelationID(r.Context())
+
 	taskId := chi.URLParam(r, "id")
 	if strings.TrimSpace(taskId) == "" {
-		utils.ErrorResponse(
-			w,
-			http.StatusBadGateway,
-			"invalid url parameter",
-		)
+		h.logger.Warn("DeleteTask: missing task id", slog.String("correlation_id", correlationID))
+		utils.ErrorResponse(w, http.StatusBadGateway, "invalid url parameter")
 		return
 	}
 
 	userId := r.Context().Value(auth.UserIdKey)
 	if strings.TrimSpace(userId.(string)) == "" {
-		utils.ErrorResponse(
-			w,
-			http.StatusUnauthorized,
-			"user not authenticated",
-		)
-		return 
-	}
-
-	if err := h.service.DeleteTask(r.Context(), taskId, userId.(string)); err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"failed to deleted tasks",
-		)
+		h.logger.Warn("DeleteTask: unauthenticated request", slog.String("correlation_id", correlationID))
+		utils.ErrorResponse(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}
 
-	utils.SuccessResponse(
-		w,
-		http.StatusNoContent,
-		TaskResponse{
-			Message: "task delete successfully",
-		},
-	)
+	if err := h.service.DeleteTask(r.Context(), taskId, userId.(string)); err != nil {
+		h.logger.Error("DeleteTask: service error", slog.String("correlation_id", correlationID), slog.String("user_id", userId.(string)), slog.String("task_id", taskId), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "failed to deleted tasks")
+		return
+	}
+
+	h.logger.Info("DeleteTask: task deleted", slog.String("correlation_id", correlationID), slog.String("user_id", userId.(string)), slog.String("task_id", taskId))
+
+	utils.SuccessResponse(w, http.StatusNoContent, TaskResponse{
+		Message: "task delete successfully",
+	})
 }
 
 // GetTask godoc
@@ -179,48 +156,36 @@ func (h *Handler)DeleteTask(w http.ResponseWriter, r *http.Request){
 //	@Failure		401	{object}	utils.Error
 //	@Failure		500	{object}	utils.Error
 //	@Router			/task/{id} [get]
-func (h *Handler)GetTask(w http.ResponseWriter, r *http.Request){
-	//taskId
+func (h *Handler) GetTask(w http.ResponseWriter, r *http.Request) {
+	correlationID := middleware.GetCorrelationID(r.Context())
+
 	taskId := chi.URLParam(r, "id")
-	if strings.TrimSpace(taskId) == ""{
-		utils.ErrorResponse(
-			w,
-			http.StatusBadRequest,
-			"invalid url param for taskId",
-		)
-		return 
-	}
-
-	//userId
-	userId := r.Context().Value(auth.UserIdKey)
-	if strings.TrimSpace(userId.(string)) == "" {
-		utils.ErrorResponse(
-			w,
-			http.StatusUnauthorized,
-			"user not authenticated",
-		)
-		return 
-	}
-
-	//get the tasks 
-	task, err := h.service.GetTask(r.Context(), userId.(string), taskId)
-	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"something went wrong",
-		)
+	if strings.TrimSpace(taskId) == "" {
+		h.logger.Warn("GetTask: missing task id", slog.String("correlation_id", correlationID))
+		utils.ErrorResponse(w, http.StatusBadRequest, "invalid url param for taskId")
 		return
 	}
 
-	utils.SuccessResponse(
-		w,
-		http.StatusOK,
-		TaskResponse{
-			Message: "task details",
-			Data: task,
-		},
-	)
+	userId := r.Context().Value(auth.UserIdKey)
+	if strings.TrimSpace(userId.(string)) == "" {
+		h.logger.Warn("GetTask: unauthenticated request", slog.String("correlation_id", correlationID))
+		utils.ErrorResponse(w, http.StatusUnauthorized, "user not authenticated")
+		return
+	}
+
+	task, err := h.service.GetTask(r.Context(), userId.(string), taskId)
+	if err != nil {
+		h.logger.Error("GetTask: service error", slog.String("correlation_id", correlationID), slog.String("user_id", userId.(string)), slog.String("task_id", taskId), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
+		return
+	}
+
+	h.logger.Info("GetTask: fetched task", slog.String("correlation_id", correlationID), slog.String("user_id", userId.(string)), slog.String("task_id", taskId))
+
+	utils.SuccessResponse(w, http.StatusOK, TaskResponse{
+		Message: "task details",
+		Data:    task,
+	})
 }
 
 
@@ -239,55 +204,41 @@ func (h *Handler)GetTask(w http.ResponseWriter, r *http.Request){
 //	@Failure		401		{object}	utils.Error
 //	@Failure		500		{object}	utils.Error
 //	@Router			/task/{id} [patch]
-func (h *Handler)UpdateTask(w http.ResponseWriter, r *http.Request){
-	//taskId
+func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
+	correlationID := middleware.GetCorrelationID(r.Context())
+
 	taskId := chi.URLParam(r, "id")
-	if strings.TrimSpace(taskId) == ""{
-		utils.ErrorResponse(
-			w,
-			http.StatusBadRequest,
-			"invalid url param for taskId",
-		)
-		return 
+	if strings.TrimSpace(taskId) == "" {
+		h.logger.Warn("UpdateTask: missing task id", slog.String("correlation_id", correlationID))
+		utils.ErrorResponse(w, http.StatusBadRequest, "invalid url param for taskId")
+		return
 	}
 
-	//userId
 	userId := r.Context().Value(auth.UserIdKey)
 	if strings.TrimSpace(userId.(string)) == "" {
-		utils.ErrorResponse(
-			w,
-			http.StatusUnauthorized,
-			"user not authenticated",
-		)
-		return 
+		h.logger.Warn("UpdateTask: unauthenticated request", slog.String("correlation_id", correlationID))
+		utils.ErrorResponse(w, http.StatusUnauthorized, "user not authenticated")
+		return
 	}
 
 	var isCompleted bool
 	if err := json.NewDecoder(r.Body).Decode(&isCompleted); err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusBadGateway,
-			"invalid request body",
-		)
-		return 
+		h.logger.Error("UpdateTask: failed to decode request body", slog.String("correlation_id", correlationID), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusBadGateway, "invalid request body")
+		return
 	}
 
 	task, err := h.service.UpdateTask(r.Context(), userId.(string), taskId, isCompleted)
 	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"something went wrong",
-		)
-		return 
+		h.logger.Error("UpdateTask: service error", slog.String("correlation_id", correlationID), slog.String("user_id", userId.(string)), slog.String("task_id", taskId), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
+		return
 	}
 
-	utils.SuccessResponse(
-		w,
-		http.StatusOK,
-		TaskResponse{
-			Message: "task updated successfully",
-			Data: task,
-		},
-	)
+	h.logger.Info("UpdateTask: task updated", slog.String("correlation_id", correlationID), slog.String("user_id", userId.(string)), slog.String("task_id", taskId))
+
+	utils.SuccessResponse(w, http.StatusOK, TaskResponse{
+		Message: "task updated successfully",
+		Data:    task,
+	})
 }

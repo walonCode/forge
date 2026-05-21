@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"api/internals/middleware"
 	"api/pkg/utils"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -10,11 +12,13 @@ import (
 
 type Handler struct {
 	service *Service
+	logger  *slog.Logger
 }
 
-func newHandler(s *Service) *Handler {
+func newHandler(s *Service, logger *slog.Logger) *Handler {
 	return &Handler{
 		service: s,
+		logger:  logger,
 	}
 }
 
@@ -31,72 +35,51 @@ func newHandler(s *Service) *Handler {
 //	@Failure		401		{object}	utils.Error
 //	@Router			/auth/login [post]
 func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	correlationID := middleware.GetCorrelationID(r.Context())
+
 	var request LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusBadRequest,
-			"invalid body",
-		)
+		h.logger.Error("LoginHandler: failed to decode request body", slog.String("correlation_id", correlationID), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusBadRequest, "invalid body")
 		return
 	}
 
-	//see if the user exist
 	user, err := h.service.FindUserByUsername(r.Context(), request.Username)
 	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusUnauthorized,
-			"invalid username or password",
-		)
+		h.logger.Warn("LoginHandler: user not found", slog.String("correlation_id", correlationID), slog.String("username", request.Username))
+		utils.ErrorResponse(w, http.StatusUnauthorized, "invalid username or password")
 		return
 	}
 
-	//verify password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)); err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusUnauthorized,
-			"invalid username or password",
-		)
+		h.logger.Warn("LoginHandler: invalid password", slog.String("correlation_id", correlationID), slog.String("username", request.Username))
+		utils.ErrorResponse(w, http.StatusUnauthorized, "invalid username or password")
 		return
 	}
 
 	accessToken, err := utils.CreateToken(user.ID)
 	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"something went wrong",
-		)
-
+		h.logger.Error("LoginHandler: failed to create access token", slog.String("correlation_id", correlationID), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
 	refreshToken, err := utils.CreateToken(user.ID)
 	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"something went wrong",
-		)
-
+		h.logger.Error("LoginHandler: failed to create refresh token", slog.String("correlation_id", correlationID), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
-	userLogin := AuthResponse{
+	h.logger.Info("LoginHandler: user logged in", slog.String("correlation_id", correlationID), slog.String("username", request.Username))
+
+	utils.SuccessResponse(w, http.StatusOK, AuthResponse{
 		Message: "user login succcessfully",
 		Data: AuthResponseData{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		},
-	}
-
-	utils.SuccessResponse(
-		w,
-		http.StatusOK,
-		userLogin,
-	)
+	})
 }
 
 // SignupHandler godoc
@@ -113,82 +96,58 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500		{object}	utils.Error
 //	@Router			/auth/signup [post]
 func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
+	correlationID := middleware.GetCorrelationID(r.Context())
+
 	var body SignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusBadRequest,
-			"invalid request body",
-		)
+		h.logger.Error("SignupHandler: failed to decode request body", slog.String("correlation_id", correlationID), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	//check if user already exist
 	user, err := h.service.FindUserByUsername(r.Context(), body.Username)
 	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"something went wrong",
-		)
+		h.logger.Error("SignupHandler: error checking existing user", slog.String("correlation_id", correlationID), slog.String("username", body.Username), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
 	if user != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusConflict,
-			"user with username already exist",
-		)
+		h.logger.Warn("SignupHandler: username already taken", slog.String("correlation_id", correlationID), slog.String("username", body.Username))
+		utils.ErrorResponse(w, http.StatusConflict, "user with username already exist")
 		return
 	}
 
-	//create user, and create the access and refresh tokens
 	userId, err := h.service.CreateUser(r.Context(), body)
 	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"something went wrong",
-		)
+		h.logger.Error("SignupHandler: failed to create user", slog.String("correlation_id", correlationID), slog.String("username", body.Username), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
 	accessToken, err := utils.CreateToken(userId)
 	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"something went wrong",
-		)
-
+		h.logger.Error("SignupHandler: failed to create access token", slog.String("correlation_id", correlationID), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
 	refreshToken, err := utils.CreateToken(userId)
 	if err != nil {
-		utils.ErrorResponse(
-			w,
-			http.StatusInternalServerError,
-			"something went wrong",
-		)
-
+		h.logger.Error("SignupHandler: failed to create refresh token", slog.String("correlation_id", correlationID), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
-	userLogin := AuthResponse{
+	h.logger.Info("SignupHandler: user created", slog.String("correlation_id", correlationID), slog.String("username", body.Username))
+
+	utils.SuccessResponse(w, http.StatusCreated, AuthResponse{
 		Message: "user login succcessfully",
 		Data: AuthResponseData{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		},
-	}
-
-	utils.SuccessResponse(
-		w,
-		http.StatusCreated,
-		userLogin,
-	)
+	})
 }
 
 //forget password

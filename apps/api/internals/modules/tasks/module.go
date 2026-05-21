@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"database/sql"
+	"log/slog"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -10,10 +11,10 @@ type Module struct {
 	handler *Handler
 }
 
-func New(db *sql.DB)*Module{
+func New(db *sql.DB, logger *slog.Logger) *Module {
 	repo := newRepository(db)
 	service := newService(repo)
-	handler := newHandler(service)
+	handler := newHandler(service, logger)
 
 	return &Module{
 		handler: handler,
