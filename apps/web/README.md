@@ -4,7 +4,7 @@ A dashboard UI for the Forge API — built with Next.js 15, TypeScript, Tailwind
 
 ## Stack
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript (strict)
 - **Styling**: Tailwind CSS v4
 - **Data fetching**: TanStack Query v5
