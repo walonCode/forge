@@ -15,7 +15,7 @@ Forge is a monorepo that wires together every layer of a real backend system. Ea
 | 1 | Go API — net/http, sqlc, JWT, Prometheus, Chi | In progress |
 | 2 | GitHub Actions CI/CD | Coming soon |
 | 3 | Next.js dashboard | Done |
-| 4 | Bash + Python automation scripts | Coming soon |
+| 4 | Bash + Python automation scripts | In progress |
 | 5 | AWS — ECS, RDS, S3, CDK, Terraform | Coming soon |
 | 6 | Rust CLI (`blast`) — load tester | Coming soon |
 
@@ -44,9 +44,9 @@ Forge is a monorepo that wires together every layer of a real backend system. Ea
 **CLI** *(coming soon)*
 - Rust — `blast` traffic generator and load tester
 
-**Scripts** *(coming soon)*
-- Bash — setup, migrate, seed, healthcheck
-- Python — async data ingest with Pydantic v2 and httpx
+**Scripts**
+- Python — async seeder with `httpx`, `Faker`, and `rich` progress output *(available)*
+- Bash — setup, migrate, seed, healthcheck *(coming soon)*
 
 ---
 
@@ -70,7 +70,8 @@ forge/
 ├── infra/
 │   ├── cdk/          # AWS CDK TypeScript stacks (coming soon)
 │   └── terraform/    # Terraform HCL (coming soon)
-├── scripts/          # Bash + Python automation (coming soon)
+├── scripts/
+│   └── python/       # Async seeder — users + tasks via httpx
 └── .github/
     └── workflows/    # CI/CD pipelines (coming soon)
 ```
@@ -118,6 +119,30 @@ See [`apps/api/setup.md`](./apps/api/setup.md) and [`apps/web/setup.md`](./apps/
 | `DELETE /task/{id}` | Delete task (auth required) |
 | `GET /swagger/*` | Swagger UI |
 | `GET /metrics` | Prometheus metrics |
+
+---
+
+## Scripts
+
+### Python seeder
+
+Seeds the API with fake users and tasks using `httpx` and `Faker`.
+
+**Requirements**: Python 3.14+, [`uv`](https://github.com/astral-sh/uv)
+
+```bash
+cd scripts/python
+uv sync
+
+# seed 10 users with 5 tasks each (defaults)
+uv run main.py
+
+# custom counts
+uv run main.py --users 50 --tasks-per-user 10
+
+# point at a different API
+API_URL=http://localhost:9090 uv run main.py
+```
 
 ---
 
