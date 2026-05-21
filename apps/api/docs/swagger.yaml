@@ -1,0 +1,280 @@
+basePath: /
+definitions:
+  auth.AuthResponse:
+    properties:
+      data:
+        $ref: '#/definitions/auth.AuthResponseData'
+      message:
+        type: string
+    type: object
+  auth.AuthResponseData:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  auth.LoginRequest:
+    properties:
+      password:
+        minLength: 8
+        type: string
+      username:
+        minLength: 2
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  auth.SignupRequest:
+    properties:
+      name:
+        minLength: 2
+        type: string
+      password:
+        minLength: 8
+        type: string
+      username:
+        minLength: 2
+        type: string
+    required:
+    - name
+    - password
+    - username
+    type: object
+  health.HealthResponse:
+    properties:
+      db:
+        type: string
+      status:
+        type: string
+      uptime:
+        type: string
+      version:
+        type: string
+    type: object
+  health.ReadinessResponse:
+    properties:
+      checks:
+        additionalProperties:
+          type: string
+        type: object
+      status:
+        type: string
+    type: object
+  tasks.CreateTaskRequest:
+    properties:
+      description:
+        minLength: 2
+        type: string
+      title:
+        minLength: 2
+        type: string
+    required:
+    - description
+    - title
+    type: object
+  tasks.TaskResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
+  utils.Error:
+    properties:
+      error:
+        type: string
+      ok:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Task management API for Forge.
+  title: Forge API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user and return access and refresh tokens
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Error'
+      summary: Login
+      tags:
+      - auth
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user and return access and refresh tokens
+      parameters:
+      - description: Signup details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.SignupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Error'
+      summary: Signup
+      tags:
+      - auth
+  /health:
+    get:
+      description: Returns API liveness status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.HealthResponse'
+      summary: Health check
+      tags:
+      - health
+  /health/ready:
+    get:
+      description: Returns API and dependency readiness status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.ReadinessResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/health.ReadinessResponse'
+      summary: Readiness check
+      tags:
+      - health
+  /task:
+    post:
+      consumes:
+      - application/json
+      description: Create a new task for the authenticated user
+      parameters:
+      - description: Task details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tasks.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/tasks.TaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Error'
+      security:
+      - BearerAuth: []
+      summary: Create a task
+      tags:
+      - tasks
+  /task/{id}:
+    delete:
+      description: Delete a task by ID for the authenticated user
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/tasks.TaskResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Error'
+      security:
+      - BearerAuth: []
+      summary: Delete a task
+      tags:
+      - tasks
+  /tasks:
+    get:
+      description: Retrieve all tasks for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tasks.TaskResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Error'
+      security:
+      - BearerAuth: []
+      summary: Get all tasks
+      tags:
+      - tasks
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
