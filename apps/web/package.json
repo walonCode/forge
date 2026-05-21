@@ -7,9 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "gen:api": "openapi-typescript openapi.json -o lib/openapi.d.ts"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.100.11",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -20,6 +22,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "openapi-typescript": "5",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
