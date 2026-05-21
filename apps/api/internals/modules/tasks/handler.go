@@ -82,7 +82,7 @@ func (h *Handler)CreateTask(w http.ResponseWriter, r *http.Request){
 //	@Failure		401	{object}	utils.Error
 //	@Failure		500	{object}	utils.Error
 //	@Router			/tasks [get]
-func (h *Handler)GetTask(w http.ResponseWriter, r *http.Request){
+func (h *Handler)GetTasks(w http.ResponseWriter, r *http.Request){
 	userId := r.Context().Value(auth.UserIdKey)
 	if strings.TrimSpace(userId.(string)) == "" {
 		utils.ErrorResponse(
@@ -93,7 +93,7 @@ func (h *Handler)GetTask(w http.ResponseWriter, r *http.Request){
 		return 
 	}
 
-	task, err := h.service.GetTask(r.Context(), userId.(string))
+	task, err := h.service.GetTasks(r.Context(), userId.(string))
 	if err != nil {
 		utils.ErrorResponse(
 			w,
@@ -163,6 +163,128 @@ func (h *Handler)DeleteTask(w http.ResponseWriter, r *http.Request){
 		http.StatusNoContent,
 		TaskResponse{
 			Message: "task delete successfully",
+		},
+	)
+}
+
+// GetTask godoc
+//
+//	@Summary		Get a single task details
+//	@Description	Get a task by ID for the authenticated user
+//	@Tags			tasks
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		string	true	"Task ID"
+//	@Success		200	{object}	TaskResponse
+//	@Failure		401	{object}	utils.Error
+//	@Failure		500	{object}	utils.Error
+//	@Router			/task/{id} [get]
+func (h *Handler)GetTask(w http.ResponseWriter, r *http.Request){
+	//taskId
+	taskId := chi.URLParam(r, "id")
+	if strings.TrimSpace(taskId) == ""{
+		utils.ErrorResponse(
+			w,
+			http.StatusBadRequest,
+			"invalid url param for taskId",
+		)
+		return 
+	}
+
+	//userId
+	userId := r.Context().Value(auth.UserIdKey)
+	if strings.TrimSpace(userId.(string)) == "" {
+		utils.ErrorResponse(
+			w,
+			http.StatusUnauthorized,
+			"user not authenticated",
+		)
+		return 
+	}
+
+	//get the tasks 
+	task, err := h.service.GetTask(r.Context(), userId.(string), taskId)
+	if err != nil {
+		utils.ErrorResponse(
+			w,
+			http.StatusInternalServerError,
+			"something went wrong",
+		)
+		return
+	}
+
+	utils.SuccessResponse(
+		w,
+		http.StatusOK,
+		TaskResponse{
+			Message: "task details",
+			Data: task,
+		},
+	)
+}
+
+
+// UpdateTask godoc
+//
+//	@Summary		Update a single task details
+//	@Description	Change the isCompleted field for an authenticated user
+//	@Tags			tasks
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		string	true	"Task ID"
+//	@Success		200	{object}	TaskResponse
+//	@Failure		401	{object}	utils.Error
+//	@Failure		500	{object}	utils.Error
+//	@Router			/task/{id} [patch]
+func (h *Handler)UpdateTask(w http.ResponseWriter, r *http.Request){
+	//taskId
+	taskId := chi.URLParam(r, "id")
+	if strings.TrimSpace(taskId) == ""{
+		utils.ErrorResponse(
+			w,
+			http.StatusBadRequest,
+			"invalid url param for taskId",
+		)
+		return 
+	}
+
+	//userId
+	userId := r.Context().Value(auth.UserIdKey)
+	if strings.TrimSpace(userId.(string)) == "" {
+		utils.ErrorResponse(
+			w,
+			http.StatusUnauthorized,
+			"user not authenticated",
+		)
+		return 
+	}
+
+	var isCompleted bool
+	if err := json.NewDecoder(r.Body).Decode(&isCompleted); err != nil {
+		utils.ErrorResponse(
+			w,
+			http.StatusBadGateway,
+			"invalid request body",
+		)
+		return 
+	}
+
+	task, err := h.service.UpdateTask(r.Context(), userId.(string), taskId, isCompleted)
+	if err != nil {
+		utils.ErrorResponse(
+			w,
+			http.StatusInternalServerError,
+			"something went wrong",
+		)
+		return 
+	}
+
+	utils.SuccessResponse(
+		w,
+		http.StatusOK,
+		TaskResponse{
+			Message: "task updated successfully",
+			Data: task,
 		},
 	)
 }

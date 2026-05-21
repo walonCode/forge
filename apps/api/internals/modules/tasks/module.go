@@ -22,8 +22,8 @@ func New(db *sql.DB)*Module{
 
 func (m *Module)Register(r chi.Router){
 	r.Post("/task", m.handler.CreateTask)
-	r.Get("/tasks", m.handler.GetTask)
+	r.Get("/tasks", m.handler.GetTasks)
 	r.Delete("/task/{id}", m.handler.DeleteTask)
-	r.Get("/task/{id}", nil)
-	r.Patch("/task/{id}", nil)
+	r.Get("/task/{id}", m.handler.GetTask)
+	r.Patch("/task/{id}", m.handler.UpdateTask)
 }

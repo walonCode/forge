@@ -38,7 +38,7 @@ func (s *Service)CreateTask(ctx context.Context, params CreateTaskRequest, userI
 	return data,nil
 }
 
-func (s *Service)GetTask(ctx context.Context, userId string)(*[]Task, error){
+func (s *Service)GetTasks(ctx context.Context, userId string)(*[]Task, error){
 	tasks, err := s.repo.GetTasks(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -53,4 +53,22 @@ func (s *Service)DeleteTask(ctx context.Context, userId, taskId string)error{
 	}
 
 	return nil
+}
+
+func (s *Service)GetTask(ctx context.Context, userId, taskId string)(*Task, error){
+	task, err := s.repo.GetTask(ctx, userId, taskId)
+	if err != nil {
+		return nil,err
+	}
+
+	return task,nil
+}
+
+func(s *Service)UpdateTask(ctx context.Context, userId, taskId string, isCompleted bool)(*Task, error){
+	task, err := s.repo.UpdateTask(ctx, userId, taskId, isCompleted)
+	if err != nil {
+		return nil, err
+	}
+
+	return task, nil
 }
