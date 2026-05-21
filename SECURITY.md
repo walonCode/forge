@@ -1,17 +1,10 @@
 # Security Policy
 
-## Reporting a vulnerability
+## Important
 
-Do not open a public GitHub issue for security vulnerabilities.
+Forge is a personal passion project released under the MIT License. It is provided **as is, with no guarantees**. If you use this code in your own project, you are responsible for your own security — audit it, harden it, and make it fit for your use case.
 
-Send a report to **mohamedlaminwalonjalloh@gmail.com** with:
-
-- A clear description of the vulnerability
-- Steps to reproduce it
-- The potential impact
-- Any suggested fix (optional)
-
-You will receive a response within 72 hours. If the issue is confirmed, a fix will be prioritised and released as soon as possible. You will be credited in the release notes unless you prefer otherwise.
+No formal security support is offered. Vulnerability reports may be read but there is no commitment to respond or patch.
 
 ---
 

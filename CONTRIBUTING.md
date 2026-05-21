@@ -1,5 +1,11 @@
 # Contributing
 
+## Heads up
+
+Forge is a personal passion project. It is built for learning and is not maintained as a collaborative open-source project.
+
+Pull requests and issues are welcome but may not be reviewed, responded to, or merged. If you want to build on this, fork it and make it your own — that is the most honest way to use it.
+
 ## Before you start
 
 - Check open issues before opening a new one
