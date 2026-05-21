@@ -26,7 +26,7 @@ func newRepository(db *sql.DB)Respository{
 
 func (r *sqlRepository)CreateTask(ctx context.Context, params CreateTaskParam)(string, error){
 	var taskId string
-	sql := "INSERT INTO tasks (id, title, userId, description isCompleted) VALUES ($1,$2,$3,$4,$5) RETURNING id"
+	sql := "INSERT INTO tasks (id, title, userId, description, is_completed) VALUES ($1,$2,$3,$4,$5) RETURNING id"
 	
 	//adding it to the db
 	if err := r.db.QueryRowContext(ctx, sql,params.ID, params.Title, params.UserId, params.Description, params.IsCompleted ).Scan(&taskId); err != nil {
