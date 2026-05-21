@@ -105,14 +105,14 @@ func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.FindUserByUsername(r.Context(), body.Username)
-	if err != nil {
-		h.logger.Error("SignupHandler: error checking existing user", slog.String("correlation_id", correlationID), slog.String("username", body.Username), slog.String("error", err.Error()))
-		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
-		return
-	}
+	user, _ := h.service.FindUserByUsername(r.Context(), body.Username)
+	// if err != nil {
+	// 	h.logger.Error("SignupHandler: error checking existing user", slog.String("correlation_id", correlationID), slog.String("username", body.Username), slog.String("error", err.Error()))
+	// 	utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
+	// 	return
+	// }
 
-	if user != nil {
+	if user != nil  {
 		h.logger.Warn("SignupHandler: username already taken", slog.String("correlation_id", correlationID), slog.String("username", body.Username))
 		utils.ErrorResponse(w, http.StatusConflict, "user with username already exist")
 		return
