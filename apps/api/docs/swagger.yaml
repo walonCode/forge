@@ -80,6 +80,11 @@ definitions:
       message:
         type: string
     type: object
+  tasks.UpdateTaskRequest:
+    properties:
+      isCompleted:
+        type: boolean
+    type: object
   utils.Error:
     properties:
       error:
@@ -278,6 +283,8 @@ paths:
       tags:
       - tasks
     patch:
+      consumes:
+      - application/json
       description: Change the isCompleted field for an authenticated user
       parameters:
       - description: Task ID
@@ -285,6 +292,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: Update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tasks.UpdateTaskRequest'
       produces:
       - application/json
       responses:
@@ -292,6 +305,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/tasks.TaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Error'
         "401":
           description: Unauthorized
           schema:

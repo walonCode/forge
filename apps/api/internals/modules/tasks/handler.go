@@ -229,12 +229,15 @@ func (h *Handler)GetTask(w http.ResponseWriter, r *http.Request){
 //	@Summary		Update a single task details
 //	@Description	Change the isCompleted field for an authenticated user
 //	@Tags			tasks
+//	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			id	path		string	true	"Task ID"
-//	@Success		200	{object}	TaskResponse
-//	@Failure		401	{object}	utils.Error
-//	@Failure		500	{object}	utils.Error
+//	@Param			id		path		string				true	"Task ID"
+//	@Param			body	body		UpdateTaskRequest	true	"Update payload"
+//	@Success		200		{object}	TaskResponse
+//	@Failure		400		{object}	utils.Error
+//	@Failure		401		{object}	utils.Error
+//	@Failure		500		{object}	utils.Error
 //	@Router			/task/{id} [patch]
 func (h *Handler)UpdateTask(w http.ResponseWriter, r *http.Request){
 	//taskId

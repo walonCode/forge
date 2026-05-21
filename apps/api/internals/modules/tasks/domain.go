@@ -28,6 +28,11 @@ type  TaskResponse struct {
 
 
 
+//update task request
+type UpdateTaskRequest struct {
+	IsCompleted bool `json:"isCompleted"`
+}
+
 //database
 type CreateTaskParam struct {
 	ID string
