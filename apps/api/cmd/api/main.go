@@ -8,6 +8,7 @@
 //	@securityDefinitions.apikey	BearerAuth
 //	@in							header
 //	@name						Authorization
+//	@description				Type "Bearer" followed by your token, e.g. "Bearer eyJhbGci..."
 package main
 
 import (
@@ -30,7 +31,7 @@ func main() {
 	}
 	defer db.Close()
 
-	srv := server.New(db.Client, cfg)
+	srv := server.New(db.Client, cfg, logger)
 
 	if err := srv.Start(); err != nil {
 		logger.Error("server exited with error", "error", err)

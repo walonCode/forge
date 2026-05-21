@@ -74,7 +74,7 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("LoginHandler: user logged in", slog.String("correlation_id", correlationID), slog.String("username", request.Username))
 
 	utils.SuccessResponse(w, http.StatusOK, AuthResponse{
-		Message: "user login succcessfully",
+		Message: "user logged in successfully",
 		Data: AuthResponseData{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
@@ -106,13 +106,8 @@ func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, _ := h.service.FindUserByUsername(r.Context(), body.Username)
-	// if err != nil {
-	// 	h.logger.Error("SignupHandler: error checking existing user", slog.String("correlation_id", correlationID), slog.String("username", body.Username), slog.String("error", err.Error()))
-	// 	utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
-	// 	return
-	// }
 
-	if user != nil  {
+	if user != nil {
 		h.logger.Warn("SignupHandler: username already taken", slog.String("correlation_id", correlationID), slog.String("username", body.Username))
 		utils.ErrorResponse(w, http.StatusConflict, "user with username already exist")
 		return
@@ -142,7 +137,7 @@ func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("SignupHandler: user created", slog.String("correlation_id", correlationID), slog.String("username", body.Username))
 
 	utils.SuccessResponse(w, http.StatusCreated, AuthResponse{
-		Message: "user login succcessfully",
+		Message: "user created successfully",
 		Data: AuthResponseData{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,

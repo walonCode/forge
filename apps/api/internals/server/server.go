@@ -27,14 +27,12 @@ type Server struct {
 	logger *slog.Logger
 }
 
-func New(db *sql.DB, cfg any) *Server {
+func New(db *sql.DB, cfg any, logger *slog.Logger) *Server {
 	s := &Server{
 		router: chi.NewRouter(),
 		db:     db,
 		config: cfg,
-		logger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelInfo,
-		})),
+		logger: logger,
 	}
 
 	s.mountMiddleware()

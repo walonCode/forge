@@ -347,6 +347,7 @@ paths:
       - tasks
 securityDefinitions:
   BearerAuth:
+    description: Type "Bearer" followed by your token, e.g. "Bearer eyJhbGci..."
     in: header
     name: Authorization
     type: apiKey

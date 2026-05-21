@@ -14,7 +14,7 @@ func (s *Server) mountModules() {
 
 	//protect route
 	s.router.Group(func(r chi.Router) {
-		r.Use()
+		r.Use(auth.AuthMiddlware)
 		tasks.New(s.db, s.logger).Register(r)
 	})
 }

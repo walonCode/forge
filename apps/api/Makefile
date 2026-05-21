@@ -70,7 +70,7 @@ migrate_create:
 .PHONY: swagger
 swagger:
 	@echo "Generating Swagger docs..."
-	@swag init -g cmd/api/main.go --output docs
+	@swag init -g main.go -d ./cmd/api,./internals/modules/auth,./internals/modules/health,./internals/modules/tasks,./internals/middleware,./pkg/utils --output docs
 
 ## swagger_fmt: Format Swagger annotations
 .PHONY: swagger_fmt
