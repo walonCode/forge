@@ -20,6 +20,19 @@ func newHandler(s *Service)*Handler {
 	}
 }
 
+// CreateTask godoc
+//
+//	@Summary		Create a task
+//	@Description	Create a new task for the authenticated user
+//	@Tags			tasks
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		CreateTaskRequest	true	"Task details"
+//	@Success		201		{object}	TaskResponse
+//	@Failure		400		{object}	utils.Error
+//	@Failure		500		{object}	utils.Error
+//	@Router			/task [post]
 func (h *Handler)CreateTask(w http.ResponseWriter, r *http.Request){
 	var request CreateTaskRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -58,6 +71,17 @@ func (h *Handler)CreateTask(w http.ResponseWriter, r *http.Request){
 }
 
 
+// GetTask godoc
+//
+//	@Summary		Get all tasks
+//	@Description	Retrieve all tasks for the authenticated user
+//	@Tags			tasks
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{object}	TaskResponse
+//	@Failure		401	{object}	utils.Error
+//	@Failure		500	{object}	utils.Error
+//	@Router			/tasks [get]
 func (h *Handler)GetTask(w http.ResponseWriter, r *http.Request){
 	userId := r.Context().Value(auth.UserIdKey)
 	if strings.TrimSpace(userId.(string)) == "" {
@@ -92,6 +116,18 @@ func (h *Handler)GetTask(w http.ResponseWriter, r *http.Request){
 }
 
 
+// DeleteTask godoc
+//
+//	@Summary		Delete a task
+//	@Description	Delete a task by ID for the authenticated user
+//	@Tags			tasks
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		string	true	"Task ID"
+//	@Success		204	{object}	TaskResponse
+//	@Failure		401	{object}	utils.Error
+//	@Failure		500	{object}	utils.Error
+//	@Router			/task/{id} [delete]
 func (h *Handler)DeleteTask(w http.ResponseWriter, r *http.Request){
 	taskId := chi.URLParam(r, "id")
 	if strings.TrimSpace(taskId) == "" {

@@ -18,7 +18,18 @@ func newHandler(s *Service) *Handler {
 	}
 }
 
-// login
+// LoginHandler godoc
+//
+//	@Summary		Login
+//	@Description	Authenticate a user and return access and refresh tokens
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		LoginRequest	true	"Login credentials"
+//	@Success		200		{object}	AuthResponse
+//	@Failure		400		{object}	utils.Error
+//	@Failure		401		{object}	utils.Error
+//	@Router			/auth/login [post]
 func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -88,7 +99,19 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-// signup
+// SignupHandler godoc
+//
+//	@Summary		Signup
+//	@Description	Register a new user and return access and refresh tokens
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		SignupRequest	true	"Signup details"
+//	@Success		201		{object}	AuthResponse
+//	@Failure		400		{object}	utils.Error
+//	@Failure		409		{object}	utils.Error
+//	@Failure		500		{object}	utils.Error
+//	@Router			/auth/signup [post]
 func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
 	var body SignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {

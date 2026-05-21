@@ -15,6 +15,14 @@ func newHandler(s *Service) *Handler {
 	}
 }
 
+// Health godoc
+//
+//	@Summary		Health check
+//	@Description	Returns API liveness status
+//	@Tags			health
+//	@Produce		json
+//	@Success		200	{object}	HealthResponse
+//	@Router			/health [get]
 func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	resp := h.service.Health()
 
@@ -23,6 +31,15 @@ func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+// Ready godoc
+//
+//	@Summary		Readiness check
+//	@Description	Returns API and dependency readiness status
+//	@Tags			health
+//	@Produce		json
+//	@Success		200		{object}	ReadinessResponse
+//	@Failure		503		{object}	ReadinessResponse
+//	@Router			/health/ready [get]
 func (h *Handler) Ready(w http.ResponseWriter, r *http.Request) {
 	resp, ok := h.service.Ready(r.Context())
 

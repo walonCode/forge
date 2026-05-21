@@ -1,3 +1,13 @@
+// Package main is the entry point of the Forge API.
+//
+//	@title			Forge API
+//	@version		1.0
+//	@description	Task management API for Forge.
+//	@host			localhost:8080
+//	@BasePath		/
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
 package main
 
 import (
