@@ -2,7 +2,7 @@
 
 A monorepo that combines tools — Go API, Next.js dashboard, Bash/Python scripts, AWS infrastructure, and a Rust CLI — to make a project work seamlessly end to end.
 
-> **Status**: Layer 1 (Go API) in progress · Layer 3 (UI) complete · Layers 2, 4, 5, 6 coming.
+> **Status**: Layer 1 (Go API) in progress · Layer 3 (UI) complete · LayerLayers 2,5, 6 coming.
 
 ---
 
