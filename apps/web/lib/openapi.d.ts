@@ -29,6 +29,42 @@ export interface paths {
       };
     };
   };
+  "/auth/logout": {
+    /** Stateless logout. Tokens are not tracked server-side, so the client should discard them. */
+    post: {
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["auth.AuthResponse"];
+        };
+      };
+    };
+  };
+  "/auth/refresh": {
+    /** Exchange a valid refresh token for a new access/refresh token pair */
+    post: {
+      parameters: {
+        body: {
+          /** Refresh token */
+          body: definitions["auth.RefreshRequest"];
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["auth.AuthResponse"];
+        };
+        /** Bad Request */
+        400: {
+          schema: definitions["utils.Error"];
+        };
+        /** Unauthorized */
+        401: {
+          schema: definitions["utils.Error"];
+        };
+      };
+    };
+  };
   "/auth/signup": {
     /** Register a new user and return access and refresh tokens */
     post: {
@@ -110,6 +146,29 @@ export interface paths {
     };
   };
   "/task/{id}": {
+    /** Get a task by ID for the authenticated user */
+    get: {
+      parameters: {
+        path: {
+          /** Task ID */
+          id: string;
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["tasks.TaskResponse"];
+        };
+        /** Unauthorized */
+        401: {
+          schema: definitions["utils.Error"];
+        };
+        /** Internal Server Error */
+        500: {
+          schema: definitions["utils.Error"];
+        };
+      };
+    };
     /** Delete a task by ID for the authenticated user */
     delete: {
       parameters: {
@@ -122,6 +181,37 @@ export interface paths {
         /** No Content */
         204: {
           schema: definitions["tasks.TaskResponse"];
+        };
+        /** Unauthorized */
+        401: {
+          schema: definitions["utils.Error"];
+        };
+        /** Internal Server Error */
+        500: {
+          schema: definitions["utils.Error"];
+        };
+      };
+    };
+    /** Change the isCompleted field for an authenticated user */
+    patch: {
+      parameters: {
+        path: {
+          /** Task ID */
+          id: string;
+        };
+        body: {
+          /** Update payload */
+          body: definitions["tasks.UpdateTaskRequest"];
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["tasks.TaskResponse"];
+        };
+        /** Bad Request */
+        400: {
+          schema: definitions["utils.Error"];
         };
         /** Unauthorized */
         401: {
@@ -153,6 +243,116 @@ export interface paths {
       };
     };
   };
+  "/user": {
+    /** Permanently delete the authenticated user's account and all associated data */
+    delete: {
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["users.UserResponse"];
+        };
+        /** Unauthorized */
+        401: {
+          schema: definitions["utils.Error"];
+        };
+        /** Internal Server Error */
+        500: {
+          schema: definitions["utils.Error"];
+        };
+      };
+    };
+  };
+  "/user/password": {
+    /** Change the authenticated user's password (requires the current password) */
+    patch: {
+      parameters: {
+        body: {
+          /** Current and new password */
+          body: definitions["users.UpdatePasswordRequest"];
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["users.UserResponse"];
+        };
+        /** Bad Request */
+        400: {
+          schema: definitions["utils.Error"];
+        };
+        /** Unauthorized */
+        401: {
+          schema: definitions["utils.Error"];
+        };
+        /** Not Found */
+        404: {
+          schema: definitions["utils.Error"];
+        };
+        /** Internal Server Error */
+        500: {
+          schema: definitions["utils.Error"];
+        };
+      };
+    };
+  };
+  "/user/profile": {
+    /** Get the authenticated user's profile */
+    get: {
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["users.UserResponse"];
+        };
+        /** Unauthorized */
+        401: {
+          schema: definitions["utils.Error"];
+        };
+        /** Not Found */
+        404: {
+          schema: definitions["utils.Error"];
+        };
+        /** Internal Server Error */
+        500: {
+          schema: definitions["utils.Error"];
+        };
+      };
+    };
+    /** Update the authenticated user's name and/or username */
+    patch: {
+      parameters: {
+        body: {
+          /** Fields to update */
+          body: definitions["users.UpdateProfileRequest"];
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["users.UserResponse"];
+        };
+        /** Bad Request */
+        400: {
+          schema: definitions["utils.Error"];
+        };
+        /** Unauthorized */
+        401: {
+          schema: definitions["utils.Error"];
+        };
+        /** Not Found */
+        404: {
+          schema: definitions["utils.Error"];
+        };
+        /** Conflict */
+        409: {
+          schema: definitions["utils.Error"];
+        };
+        /** Internal Server Error */
+        500: {
+          schema: definitions["utils.Error"];
+        };
+      };
+    };
+  };
 }
 
 export interface definitions {
@@ -167,6 +367,9 @@ export interface definitions {
   "auth.LoginRequest": {
     password: string;
     username: string;
+  };
+  "auth.RefreshRequest": {
+    refresh_token: string;
   };
   "auth.SignupRequest": {
     name: string;
@@ -188,6 +391,21 @@ export interface definitions {
     title: string;
   };
   "tasks.TaskResponse": {
+    data?: unknown;
+    message?: string;
+  };
+  "tasks.UpdateTaskRequest": {
+    isCompleted?: boolean;
+  };
+  "users.UpdatePasswordRequest": {
+    current_password: string;
+    new_password: string;
+  };
+  "users.UpdateProfileRequest": {
+    name?: string;
+    username?: string;
+  };
+  "users.UserResponse": {
     data?: unknown;
     message?: string;
   };
