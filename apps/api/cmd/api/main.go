@@ -22,9 +22,13 @@ import (
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	//real db and cfg comming soon
-	cfg := configs.Load()
-	db, err := database.Connect(cfg.DATABSE_URL)
+	cfg, err := configs.Load()
+	if err != nil {
+		logger.Error("failed to load config", "error", err)
+		os.Exit(1)
+	}
+
+	db, err := database.Connect(cfg.DatabaseURL)
 	if err != nil {
 		logger.Error("failed to connect to database", "error", err)
 		os.Exit(1)
