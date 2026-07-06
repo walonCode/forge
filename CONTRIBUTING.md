@@ -58,20 +58,28 @@ make swagger_fmt   # formats annotations
 
 ### Tests
 
-- **Service layer**: unit tests in `service_test.go`, no database needed
-- **Repository layer**: integration tests in `repository_test.go` against a real Postgres instance
-- Use transaction rollback pattern — each test wraps in a `tx`, defers `tx.Rollback()`
-- Target: 75%+ coverage on service and repository layers
+Modules are tested without a live database by implementing the module's
+`Repository` interface with an in-memory fake:
+
+- **Service layer** (`service_test.go`): construct the service with a fake
+  repository and assert business logic — validation, error mapping, hashing.
+- **Handler layer** (`handler_test.go`): drive the handler with `httptest` and a
+  fake-backed service; assert status codes, response shape, and that no secret or
+  password leaks.
+- Prefer table-driven tests. Repository integration tests against a real Postgres
+  instance are welcome where SQL correctness matters.
 
 ```bash
-make audit   # fmt + vet + test
+make test            # go test ./...
+make test_coverage   # go test -cover ./...
+make audit           # tidy + verify + fmt + vet + test
 ```
 
 ### Linting
 
 ```bash
 go vet ./...
-golangci-lint run ./...   # zero warnings before committing
+gofmt -l .   # should print nothing
 ```
 
 ### Return 404 not 403
@@ -101,26 +109,34 @@ The UI scope is four pages only. Do not add features beyond what is in the four-
 
 ## Commit style
 
-Follow the existing commit style in this repo:
+Use [Conventional Commits](https://www.conventionalcommits.org/), scoped to the
+area you touched. One focused change per commit.
 
 ```
-[feats]: add task deletion endpoint
-[updates]: update auth middleware to extract userId
-[fix]: handle empty username in login handler
-[docs]: update api setup guide
-[chore]: run go mod tidy
+feat(tasks): add task deletion endpoint
+fix(auth): handle empty username in login handler
+refactor(auth): extract userId in middleware
+build(deps): add validator dependency
+docs: update api setup guide
+chore: run go mod tidy
 ```
 
 ---
+
+## Continuous integration
+
+Pushes to `main` trigger the [`test`](.github/workflows/test.yml) workflow, which
+builds, vets, and tests the Go API and type-checks the web app. Make sure the
+checklist below passes locally before pushing to `main`.
 
 ## Pull request checklist
 
 Before opening a PR:
 
-- [ ] `go vet ./...` passes
-- [ ] `golangci-lint run ./...` passes with zero errors
-- [ ] `go test ./...` passes locally
+- [ ] `make test` passes locally (`go build`, `go vet`, `go test`)
+- [ ] `gofmt -l .` prints nothing
 - [ ] New handlers have Swagger annotations and `make swagger` has been run
 - [ ] New migrations have both `.up.sql` and `.down.sql`
-- [ ] `bun build` passes if you touched the UI
+- [ ] API changes are synced to the UI (`openapi.json` + `bun run gen:api`)
+- [ ] `bunx tsc --noEmit` passes if you touched the UI
 - [ ] No TODO comments left in committed code (use GitHub Issues instead)

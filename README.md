@@ -2,7 +2,7 @@
 
 A monorepo that combines tools — Go API, Next.js dashboard, Bash/Python scripts, AWS infrastructure, and a Rust CLI — to make a project work seamlessly end to end.
 
-> **Status**: Layer 1 (Go API) in progress · Layer 3 (UI) complete · LayerLayers 2,5, 6 coming.
+> **Status**: Layer 1 (Go API) in progress · Layer 2 (CI) & Layer 3 (UI) in place · Layers 5, 6 coming.
 
 ---
 
@@ -13,7 +13,7 @@ Forge is a monorepo that wires together every layer of a real backend system. Ea
 | Layer | What | Status |
 |---|---|---|
 | 1 | Go API — net/http, sqlc, JWT, Prometheus, Chi | In progress |
-| 2 | GitHub Actions CI/CD | Coming soon |
+| 2 | GitHub Actions CI/CD | In progress |
 | 3 | Next.js dashboard | Done |
 | 4 | Bash + Python automation scripts | In progress |
 | 5 | AWS — ECS, RDS, S3, CDK, Terraform | Coming soon |
@@ -24,11 +24,13 @@ Forge is a monorepo that wires together every layer of a real backend system. Ea
 ## Stack
 
 **Backend**
-- Go 1.22+ with Chi router
+- Go 1.26+ with Chi router
 - PostgreSQL 16 via `pgx`
-- `sqlc` for type-safe queries
+- Parameterized SQL (`database/sql`)
 - `golang-migrate` for migrations
-- `golang-jwt` for auth
+- `golang-jwt` for auth — access + refresh tokens
+- Request validation (`go-playground/validator`)
+- Per-IP rate limiting (`httprate`) on auth routes
 - Prometheus metrics
 
 **Frontend**
@@ -57,11 +59,11 @@ forge/
 ├── apps/
 │   ├── api/          # Go backend
 │   │   ├── cmd/api/  # Entry point
-│   │   ├── db/       # Migrations + sqlc queries
+│   │   ├── db/       # SQL migrations
 │   │   ├── docs/     # Generated Swagger docs
 │   │   └── internals/
 │   │       ├── middleware/
-│   │       ├── modules/  # auth · health · tasks
+│   │       ├── modules/  # auth · users · health · tasks
 │   │       └── server/
 │   └── web/          # Next.js dashboard
 │       ├── app/      # health · metrics · data · auth pages
@@ -73,14 +75,14 @@ forge/
 ├── scripts/
 │   └── python/       # Async seeder — users + tasks via httpx
 └── .github/
-    └── workflows/    # CI/CD pipelines (coming soon)
+    └── workflows/    # CI — test suite on main
 ```
 
 ---
 
 ## Quick start
 
-**Requirements**: Go 1.22+, Docker, Bun
+**Requirements**: Go 1.26+, Docker, Bun
 
 ```bash
 # 1. Clone
@@ -111,14 +113,24 @@ See [`apps/api/setup.md`](./apps/api/setup.md) and [`apps/web/setup.md`](./apps/
 | Route | Description |
 |---|---|
 | `GET /health` | Liveness check |
-| `GET /health/ready` | Readiness check |
-| `POST /auth/signup` | Register |
-| `POST /auth/login` | Login |
+| `GET /health/ready` | Readiness check (pings the DB) |
+| `POST /auth/signup` | Register, returns access + refresh tokens |
+| `POST /auth/login` | Login, returns access + refresh tokens |
+| `POST /auth/refresh` | Exchange a refresh token for a new token pair |
+| `POST /auth/logout` | Stateless logout |
+| `GET /user/profile` | Get own profile (auth required) |
+| `PATCH /user/profile` | Update name / username (auth required) |
+| `PATCH /user/password` | Change password (auth required) |
+| `DELETE /user` | Delete own account (auth required) |
 | `POST /task` | Create task (auth required) |
 | `GET /tasks` | List tasks (auth required) |
+| `GET /task/{id}` | Get a task (auth required) |
+| `PATCH /task/{id}` | Update a task (auth required) |
 | `DELETE /task/{id}` | Delete task (auth required) |
 | `GET /swagger/*` | Swagger UI |
 | `GET /metrics` | Prometheus metrics |
+
+Auth endpoints are rate limited per IP. See [`apps/api/docs/FIXES.md`](./apps/api/docs/FIXES.md) for the security & correctness hardening log.
 
 ---
 
