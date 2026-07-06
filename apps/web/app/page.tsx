@@ -1,31 +1,28 @@
-'use client'
-import { useQuery } from '@tanstack/react-query'
 import { getHealth } from '@/lib/api'
+import { RefreshButton } from './refresh-button'
 
-export default function HealthPage() {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['health'],
-    queryFn: getHealth,
-    refetchInterval: 5000,
-    retry: false,
-  })
+export default async function HealthPage() {
+  let data: Awaited<ReturnType<typeof getHealth>> | null = null
+  let error = false
+  try {
+    data = await getHealth()
+  } catch {
+    error = true
+  }
 
-  const ok = !isError && !isLoading && data?.status === 'ok'
-  const dotColor = isLoading
-    ? 'bg-yellow-500'
-    : ok
-      ? 'bg-green-500'
-      : 'bg-red-500'
+  const ok = !error && data?.status === 'ok'
+  const dotColor = ok ? 'bg-green-500' : 'bg-red-500'
 
   return (
     <div className="max-w-md space-y-6">
-      <h1 className="text-lg font-mono font-semibold">Health</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-mono font-semibold">Health</h1>
+        <RefreshButton />
+      </div>
 
       <div className="flex items-center gap-3">
         <span className={`w-3 h-3 rounded-full ${dotColor}`} />
-        <span className="font-mono text-sm">
-          {isLoading ? 'checking…' : ok ? 'ok' : 'degraded'}
-        </span>
+        <span className="font-mono text-sm">{ok ? 'ok' : 'degraded'}</span>
       </div>
 
       {data && (
@@ -45,13 +42,11 @@ export default function HealthPage() {
         </dl>
       )}
 
-      {isError && (
+      {error && (
         <p className="text-red-400 text-sm font-mono">
           Could not reach API — is the server running on port 8080?
         </p>
       )}
-
-      <p className="text-xs text-neutral-600 font-mono">polls every 5s</p>
     </div>
   )
 }

@@ -1,7 +1,7 @@
-'use client'
-import { useQuery } from '@tanstack/react-query'
+import { cookies } from 'next/headers'
 import { getTasks } from '@/lib/api'
-import { useToken } from '@/lib/providers'
+import { ACCESS_COOKIE } from '../auth/shared'
+import { RefreshButton } from '../refresh-button'
 
 type Task = {
   id: string
@@ -11,17 +11,9 @@ type Task = {
   created_at: string
 }
 
-export default function DataPage() {
-  const { token } = useToken()
-
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => getTasks(token!),
-    enabled: !!token,
-    retry: false,
-  })
-
-  const rows = (Array.isArray(data?.data) ? (data.data as Task[]) : []).slice(0, 20)
+export default async function DataPage() {
+  const store = await cookies()
+  const token = store.get(ACCESS_COOKIE)?.value
 
   if (!token) {
     return (
@@ -38,22 +30,27 @@ export default function DataPage() {
     )
   }
 
+  let rows: Task[] = []
+  let error = false
+  try {
+    const data = await getTasks(token)
+    rows = (Array.isArray(data?.data) ? (data.data as Task[]) : []).slice(0, 20)
+  } catch {
+    error = true
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-mono font-semibold">Data — tasks</h1>
-        <button
-          onClick={() => refetch()}
-          className="text-xs font-mono text-neutral-400 hover:text-white transition-colors"
-        >
-          refresh
-        </button>
+        <RefreshButton />
       </div>
 
-      {isLoading && <p className="text-sm font-mono text-neutral-500">loading…</p>}
-      {isError && <p className="text-sm font-mono text-red-400">Failed to fetch tasks</p>}
+      {error && (
+        <p className="text-sm font-mono text-red-400">Failed to fetch tasks</p>
+      )}
 
-      {!isLoading && !isError && rows.length === 0 && (
+      {!error && rows.length === 0 && (
         <p className="text-sm font-mono text-neutral-500">No tasks found.</p>
       )}
 
@@ -70,7 +67,10 @@ export default function DataPage() {
           </thead>
           <tbody>
             {rows.map((t) => (
-              <tr key={t.id} className="border-b border-neutral-900 hover:bg-neutral-900">
+              <tr
+                key={t.id}
+                className="border-b border-neutral-900 hover:bg-neutral-900"
+              >
                 <td className="py-2 pr-6 text-neutral-500 font-mono text-xs max-w-24 truncate">
                   {t.id}
                 </td>
@@ -86,7 +86,9 @@ export default function DataPage() {
         </table>
       )}
 
-      <p className="text-xs text-neutral-600 font-mono">{rows.length} / 20 rows shown</p>
+      <p className="text-xs text-neutral-600 font-mono">
+        {rows.length} / 20 rows shown
+      </p>
     </div>
   )
 }

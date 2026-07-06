@@ -1,7 +1,6 @@
-'use client'
-import { useQuery } from '@tanstack/react-query'
 import { getMetrics } from '@/lib/api'
-import { parsePrometheus, metric } from '@/lib/parse-metrics'
+import { metric, parsePrometheus } from '@/lib/parse-metrics'
+import { RefreshButton } from '../refresh-button'
 
 function fmt(n: number | null, unit = ''): string {
   if (n === null) return '—'
@@ -28,13 +27,14 @@ function Row({ label, value }: { label: string; value: string }) {
   )
 }
 
-export default function MetricsPage() {
-  const { data: raw, isLoading, isError, refetch } = useQuery({
-    queryKey: ['metrics'],
-    queryFn: getMetrics,
-    refetchInterval: 15_000,
-    retry: false,
-  })
+export default async function MetricsPage() {
+  let raw: string | null = null
+  let error = false
+  try {
+    raw = await getMetrics()
+  } catch {
+    error = true
+  }
 
   const m = raw ? parsePrometheus(raw) : null
 
@@ -42,16 +42,14 @@ export default function MetricsPage() {
     <div className="max-w-lg space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-mono font-semibold">Metrics</h1>
-        <button
-          onClick={() => refetch()}
-          className="text-xs font-mono text-neutral-400 hover:text-white transition-colors"
-        >
-          refresh
-        </button>
+        <RefreshButton />
       </div>
 
-      {isLoading && <p className="text-sm font-mono text-neutral-500">loading…</p>}
-      {isError && <p className="text-sm font-mono text-red-400">Could not fetch /metrics</p>}
+      {error && (
+        <p className="text-sm font-mono text-red-400">
+          Could not fetch /metrics
+        </p>
+      )}
 
       {m && (
         <div className="space-y-8">
@@ -75,15 +73,24 @@ export default function MetricsPage() {
             <dl className="font-mono text-sm space-y-2">
               <Row
                 label="p50"
-                value={fmt(metric(m, 'go_gc_duration_seconds', { quantile: '0.5' }), 's')}
+                value={fmt(
+                  metric(m, 'go_gc_duration_seconds', { quantile: '0.5' }),
+                  's',
+                )}
               />
               <Row
                 label="p95"
-                value={fmt(metric(m, 'go_gc_duration_seconds', { quantile: '0.95' }), 's')}
+                value={fmt(
+                  metric(m, 'go_gc_duration_seconds', { quantile: '0.95' }),
+                  's',
+                )}
               />
               <Row
                 label="p99"
-                value={fmt(metric(m, 'go_gc_duration_seconds', { quantile: '0.99' }), 's')}
+                value={fmt(
+                  metric(m, 'go_gc_duration_seconds', { quantile: '0.99' }),
+                  's',
+                )}
               />
             </dl>
           </section>
@@ -93,10 +100,19 @@ export default function MetricsPage() {
               Go runtime
             </h2>
             <dl className="font-mono text-sm space-y-2">
-              <Row label="goroutines" value={fmtInt(metric(m, 'go_goroutines'))} />
+              <Row
+                label="goroutines"
+                value={fmtInt(metric(m, 'go_goroutines'))}
+              />
               <Row label="threads" value={fmtInt(metric(m, 'go_threads'))} />
-              <Row label="heap alloc" value={fmtBytes(metric(m, 'go_memstats_alloc_bytes'))} />
-              <Row label="heap sys" value={fmtBytes(metric(m, 'go_memstats_sys_bytes'))} />
+              <Row
+                label="heap alloc"
+                value={fmtBytes(metric(m, 'go_memstats_alloc_bytes'))}
+              />
+              <Row
+                label="heap sys"
+                value={fmtBytes(metric(m, 'go_memstats_sys_bytes'))}
+              />
               <Row
                 label="GC cycles"
                 value={fmtInt(metric(m, 'go_gc_duration_seconds_count'))}
@@ -105,8 +121,6 @@ export default function MetricsPage() {
           </section>
         </div>
       )}
-
-      <p className="text-xs text-neutral-600 font-mono">refreshes every 15s</p>
     </div>
   )
 }
