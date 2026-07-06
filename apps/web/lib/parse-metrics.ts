@@ -19,7 +19,9 @@ export function parsePrometheus(text: string): MetricsMap {
       for (const pair of line.slice(braceOpen + 1, braceClose).split(',')) {
         const eq = pair.indexOf('=')
         if (eq === -1) continue
-        labels[pair.slice(0, eq).trim()] = pair.slice(eq + 1).replace(/^"|"$/g, '')
+        labels[pair.slice(0, eq).trim()] = pair
+          .slice(eq + 1)
+          .replace(/^"|"$/g, '')
       }
       rest = line.slice(braceClose + 2)
     } else {
@@ -29,7 +31,7 @@ export function parsePrometheus(text: string): MetricsMap {
     }
 
     const value = parseFloat(rest.split(' ')[0])
-    if (!isNaN(value)) {
+    if (!Number.isNaN(value)) {
       const entries = result.get(name) ?? []
       entries.push({ labels, value })
       result.set(name, entries)
