@@ -47,6 +47,18 @@ audit:
 	@echo "Running tests..."
 	@go test ./...
 
+## test: Run the test suite
+.PHONY: test
+test:
+	@echo "Running tests..."
+	@go test ./...
+
+## test_coverage: Run tests with a coverage summary
+.PHONY: test_coverage
+test_coverage:
+	@echo "Running tests with coverage..."
+	@go test -cover ./...
+
 ## database_up: Apply all pending migrations
 .PHONY: database_up
 database_up:

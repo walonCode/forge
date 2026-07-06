@@ -26,6 +26,13 @@ definitions:
     - password
     - username
     type: object
+  auth.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
   auth.SignupRequest:
     properties:
       name:
@@ -154,6 +161,50 @@ paths:
           schema:
             $ref: '#/definitions/utils.Error'
       summary: Login
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Stateless logout. Tokens are not tracked server-side, so the client
+        should discard them.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthResponse'
+      summary: Logout
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Exchange a valid refresh token for a new access/refresh token pair
+      parameters:
+      - description: Refresh token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Error'
+      summary: Refresh tokens
       tags:
       - auth
   /auth/signup:
