@@ -23,8 +23,11 @@ bun install
 Create `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8080
+API_URL=http://localhost:8080
 ```
+
+`API_URL` is a **server-only** variable (no `NEXT_PUBLIC_` prefix) — it is read by
+Server Components and Server Actions and never shipped to the browser.
 
 **3. Start the dev server**
 
