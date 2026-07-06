@@ -1,7 +1,9 @@
 package database
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -28,6 +30,14 @@ func Connect(database_url string) (*Database, error) {
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(25)
 	db.SetConnMaxLifetime(5 * time.Minute)
+
+	// verify the connection is actually reachable so misconfiguration fails fast
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
 
 	return &Database{
 		Client: db,
