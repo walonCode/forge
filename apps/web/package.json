@@ -11,7 +11,6 @@
     "gen:api": "openapi-typescript openapi.json -o lib/openapi.d.ts"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.100.11",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
