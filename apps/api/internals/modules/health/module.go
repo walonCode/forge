@@ -10,8 +10,8 @@ type Module struct {
 	handler *Handler
 }
 
-func New(db *sql.DB) *Module {
-	service := newService(db)
+func New(db *sql.DB, version string) *Module {
+	service := newService(db, version)
 	handler := newHandler(service)
 
 	return &Module{

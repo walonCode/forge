@@ -2,6 +2,7 @@ package server
 
 import (
 	"api/internals/middleware"
+	"api/pkg/configs"
 	"context"
 	"database/sql"
 	"fmt"
@@ -23,11 +24,11 @@ import (
 type Server struct {
 	router *chi.Mux
 	db     *sql.DB
-	config any
+	config *configs.Config
 	logger *slog.Logger
 }
 
-func New(db *sql.DB, cfg any, logger *slog.Logger) *Server {
+func New(db *sql.DB, cfg *configs.Config, logger *slog.Logger) *Server {
 	s := &Server{
 		router: chi.NewRouter(),
 		db:     db,
@@ -44,13 +45,16 @@ func New(db *sql.DB, cfg any, logger *slog.Logger) *Server {
 func (s *Server) mountMiddleware() {
 	s.router.Use(chimiddleware.RealIP)
 	s.router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-		ExposedHeaders:   []string{"X-Correlation-ID"},
-		AllowCredentials: true,
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
+		ExposedHeaders: []string{"X-Correlation-ID"},
+		// token auth uses the Authorization header, not cookies; credentialed
+		// mode is incompatible with a wildcard origin, so keep it off.
+		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+	s.router.Use(middleware.MaxBodyBytes)
 	s.router.Use(middleware.CreateCorrelationIdMiddleware)
 	s.router.Use(middleware.LoggerMiddleware(s.logger))
 }
@@ -62,7 +66,7 @@ func (s *Server) mountRoutes() {
 
 	//doc
 	s.router.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+		httpSwagger.URL(fmt.Sprintf("http://localhost:%d/swagger/doc.json", s.config.Port)),
 	))
 
 	//mount the modules
@@ -71,7 +75,7 @@ func (s *Server) mountRoutes() {
 
 func (s *Server) Start() error {
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", 8080),
+		Addr:         fmt.Sprintf(":%d", s.config.Port),
 		Handler:      s.router,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
@@ -86,7 +90,7 @@ func (s *Server) Start() error {
 	serverErr := make(chan error, 1)
 
 	go func() {
-		s.logger.Info("server starting", "addr", srv.Addr, "env", s.config)
+		s.logger.Info("server starting", "addr", srv.Addr, "version", s.config.AppVersion)
 		serverErr <- srv.ListenAndServe()
 	}()
 

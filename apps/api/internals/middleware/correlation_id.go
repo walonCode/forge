@@ -8,9 +8,9 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
-type contextkey string
+type contextKey string
 
-const CorrelationIDKey contextkey = "correlation_id"
+const CorrelationIDKey contextKey = "correlation_id"
 
 func CreateCorrelationIdMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

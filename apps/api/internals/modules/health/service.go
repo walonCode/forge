@@ -3,27 +3,28 @@ package health
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 )
 
 type Service struct {
-	db *sql.DB
+	db      *sql.DB
+	version string
 }
 
 var start = time.Now()
 
-func newService(db *sql.DB) *Service {
+func newService(db *sql.DB, version string) *Service {
 	return &Service{
-		db: db,
+		db:      db,
+		version: version,
 	}
 }
 
 func (s *Service) Health() HealthResponse {
 	return HealthResponse{
 		Status:  "ok",
-		Version: "1.0.0",
-		Uptime:  fmt.Sprintf("%s", time.Since(start).Round(time.Second)),
+		Version: s.version,
+		Uptime:  time.Since(start).Round(time.Second).String(),
 	}
 }
 
