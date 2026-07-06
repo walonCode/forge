@@ -8,7 +8,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strings"
 )
 
 type Handler struct {
@@ -84,12 +83,8 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if v := strings.TrimSpace(request.Name); v != "" && len(v) < 2 {
-		utils.ErrorResponse(w, http.StatusBadRequest, "name must be at least 2 characters")
-		return
-	}
-	if v := strings.TrimSpace(request.Username); v != "" && len(v) < 2 {
-		utils.ErrorResponse(w, http.StatusBadRequest, "username must be at least 2 characters")
+	if err := utils.ValidateStruct(request); err != nil {
+		utils.ErrorResponse(w, http.StatusBadRequest, "name and username must be at least 2 characters when provided")
 		return
 	}
 
@@ -144,8 +139,8 @@ func (h *Handler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(request.NewPassword) < 8 {
-		utils.ErrorResponse(w, http.StatusBadRequest, "new password must be at least 8 characters")
+	if err := utils.ValidateStruct(request); err != nil {
+		utils.ErrorResponse(w, http.StatusBadRequest, "current and new password must be at least 8 characters")
 		return
 	}
 	if request.CurrentPassword == request.NewPassword {

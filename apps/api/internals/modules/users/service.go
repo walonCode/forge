@@ -6,6 +6,8 @@ import (
 	"errors"
 	"strings"
 
+	"api/pkg/database"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -74,6 +76,10 @@ func (s *Service) UpdateProfile(ctx context.Context, userId string, req UpdatePr
 
 	updated, err := s.repo.UpdateProfile(ctx, userId, name, username)
 	if err != nil {
+		// safety net for the unique index in case of a race past the check above
+		if database.IsUniqueViolation(err) {
+			return nil, ErrUsernameTaken
+		}
 		return nil, err
 	}
 
