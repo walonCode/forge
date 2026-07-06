@@ -22,9 +22,9 @@ func newRepository(db *sql.DB) Repository {
 
 func (r *sqlRepository) CreateUser(ctx context.Context, params CreateDbUser) (string, error) {
 	var Id string
-	sql := "INSERT INTO users (id, name, username, password) VALUES ($1, $2, $3, $4) RETURNING id"
+	query := "INSERT INTO users (id, name, username, password) VALUES ($1, $2, $3, $4) RETURNING id"
 
-	if err := r.db.QueryRowContext(ctx, sql, params.ID, params.Name, params.Username, params.Password).Scan(&Id); err != nil {
+	if err := r.db.QueryRowContext(ctx, query, params.ID, params.Name, params.Username, params.Password).Scan(&Id); err != nil {
 		return "", err
 	}
 
@@ -33,9 +33,9 @@ func (r *sqlRepository) CreateUser(ctx context.Context, params CreateDbUser) (st
 
 func (r *sqlRepository) FindUserByUsername(ctx context.Context, username string) (*DbUser, error) {
 	var user DbUser
-	sql := "SELECT password, username,id FROM users WHERE username = $1"
+	query := "SELECT password, username, id FROM users WHERE username = $1"
 
-	if err := r.db.QueryRowContext(ctx, sql, username).Scan(&user.Password, &user.Username, &user.ID); err != nil {
+	if err := r.db.QueryRowContext(ctx, query, username).Scan(&user.Password, &user.Username, &user.ID); err != nil {
 		return nil, err
 	}
 

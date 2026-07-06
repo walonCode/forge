@@ -7,6 +7,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// bcryptCost is the work factor used when hashing passwords.
+const bcryptCost = 10
+
 type Service struct {
 	repo Repository
 }
@@ -17,8 +20,8 @@ func newService(repo Repository) *Service {
 	}
 }
 
-func (s *Service) FindUserByUsername(ctx context.Context, email string) (*DbUser, error) {
-	user, err := s.repo.FindUserByUsername(ctx, email)
+func (s *Service) FindUserByUsername(ctx context.Context, username string) (*DbUser, error) {
+	user, err := s.repo.FindUserByUsername(ctx, username)
 	if err != nil {
 		return nil, err
 	}
@@ -27,10 +30,13 @@ func (s *Service) FindUserByUsername(ctx context.Context, email string) (*DbUser
 }
 
 func (s *Service) CreateUser(ctx context.Context, param SignupRequest) (string, error) {
-	id, _ := gonanoid.New(20)
+	id, err := gonanoid.New(20)
+	if err != nil {
+		return "", err
+	}
 
 	//hash the password
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(param.Password), 10)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(param.Password), bcryptCost)
 	if err != nil {
 		return "", err
 	}

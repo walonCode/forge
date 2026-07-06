@@ -6,6 +6,11 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required,min=8"`
 }
 
+// refresh
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
 // signup
 type SignupRequest struct {
 	Name     string `json:"name" validate:"required,min=2"`
@@ -15,8 +20,8 @@ type SignupRequest struct {
 
 // auth response
 type AuthResponse struct {
-	Message string           `json:"message"`
-	Data    AuthResponseData `json:"data" validate:"omitempty"`
+	Message string            `json:"message"`
+	Data    *AuthResponseData `json:"data,omitempty"`
 }
 
 type AuthResponseData struct {
