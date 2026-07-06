@@ -7,7 +7,7 @@ import (
 
 type Repository interface {
 	CreateTask(ctx context.Context, params CreateTaskParam) (string, error)
-	GetTasks(ctx context.Context, userId string) (*[]Task, error)
+	GetTasks(ctx context.Context, userId string) ([]Task, error)
 	DeleteTask(ctx context.Context, userId, taskId string) error
 	GetTask(ctx context.Context, userId, taskId string) (*Task, error)
 	UpdateTask(ctx context.Context, userId, taskId string, isCompleted bool) (*Task, error)
@@ -35,7 +35,7 @@ func (r *sqlRepository) CreateTask(ctx context.Context, params CreateTaskParam) 
 	return taskId, nil
 }
 
-func (r *sqlRepository) GetTasks(ctx context.Context, userId string) (*[]Task, error) {
+func (r *sqlRepository) GetTasks(ctx context.Context, userId string) ([]Task, error) {
 	var tasks []Task
 	query := "SELECT id,title,description, is_completed, userId, updated_at, created_at FROM tasks WHERE userId = $1"
 
@@ -57,7 +57,7 @@ func (r *sqlRepository) GetTasks(ctx context.Context, userId string) (*[]Task, e
 		return nil, err
 	}
 
-	return &tasks, nil
+	return tasks, nil
 }
 
 func (r *sqlRepository) DeleteTask(ctx context.Context, userId, taskId string) error {

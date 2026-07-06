@@ -47,6 +47,12 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := utils.ValidateStruct(request); err != nil {
+		h.logger.Warn("CreateTask: validation failed", slog.String("correlation_id", correlationID), slog.String("error", err.Error()))
+		utils.ErrorResponse(w, http.StatusBadRequest, "title and description are required (min 2 characters)")
+		return
+	}
+
 	userId, _ := r.Context().Value(auth.UserIdKey).(string)
 
 	value, err := h.service.CreateTask(r.Context(), request, userId)
@@ -79,7 +85,7 @@ func (h *Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	correlationID := middleware.GetCorrelationID(r.Context())
 	userId, _ := r.Context().Value(auth.UserIdKey).(string)
 
-	task, err := h.service.GetTasks(r.Context(), userId)
+	tasks, err := h.service.GetTasks(r.Context(), userId)
 	if err != nil {
 		h.logger.Error("GetTasks: service error", slog.String("correlation_id", correlationID), slog.String("user_id", userId), slog.String("error", err.Error()))
 		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")
@@ -90,7 +96,7 @@ func (h *Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 
 	utils.SuccessResponse(w, http.StatusOK, TaskResponse{
 		Message: "all user tasks",
-		Data:    &task,
+		Data:    tasks,
 	})
 }
 
@@ -118,7 +124,7 @@ func (h *Handler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 
 	userId, _ := r.Context().Value(auth.UserIdKey).(string)
 
-	if err := h.service.DeleteTask(r.Context(), taskId, userId); err != nil {
+	if err := h.service.DeleteTask(r.Context(), userId, taskId); err != nil {
 		h.logger.Error("DeleteTask: service error", slog.String("correlation_id", correlationID), slog.String("user_id", userId), slog.String("task_id", taskId), slog.String("error", err.Error()))
 		utils.ErrorResponse(w, http.StatusInternalServerError, "failed to delete task")
 		return
@@ -197,14 +203,14 @@ func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 	userId, _ := r.Context().Value(auth.UserIdKey).(string)
 
-	var isCompleted bool
-	if err := json.NewDecoder(r.Body).Decode(&isCompleted); err != nil {
+	var request UpdateTaskRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Error("UpdateTask: failed to decode request body", slog.String("correlation_id", correlationID), slog.String("error", err.Error()))
 		utils.ErrorResponse(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	task, err := h.service.UpdateTask(r.Context(), userId, taskId, isCompleted)
+	task, err := h.service.UpdateTask(r.Context(), userId, taskId, request.IsCompleted)
 	if err != nil {
 		h.logger.Error("UpdateTask: service error", slog.String("correlation_id", correlationID), slog.String("user_id", userId), slog.String("task_id", taskId), slog.String("error", err.Error()))
 		utils.ErrorResponse(w, http.StatusInternalServerError, "something went wrong")

@@ -38,7 +38,7 @@ func (s *Service) CreateTask(ctx context.Context, params CreateTaskRequest, user
 	return data, nil
 }
 
-func (s *Service) GetTasks(ctx context.Context, userId string) (*[]Task, error) {
+func (s *Service) GetTasks(ctx context.Context, userId string) ([]Task, error) {
 	tasks, err := s.repo.GetTasks(ctx, userId)
 	if err != nil {
 		return nil, err
